@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /**
  * Pour la création de la map, voici les informations :
  * 0 : vide
@@ -6,86 +8,114 @@
  */
 
 public class Map {
-    private Object[][] map;
+    private Cell[][] grid;
+    private ArrayList<Anthill> anthills;
+    private ArrayList<Food> foods;
     private int largeur;
     private int hauteur;
-    private int hanthillX;
-    private int hanthillY;
 
     public Map(int largeur, int hauteur){
         this.largeur = largeur;
         this.hauteur = hauteur;
-        map = new Object[this.hauteur][this.largeur];
+        grid = new Cell[this.hauteur][this.largeur];
+        anthills = new ArrayList<>();
+        foods = new ArrayList<>();
     }
 
     public Map(int largeur, int hauteur, int nbFood){
-        this.largeur = largeur;
-        this.hauteur = hauteur;
-        map = new Object[this.hauteur][this.largeur];
-        initializeMap(nbFood,1);
+        this(largeur,hauteur);
+        grid = new Cell[this.hauteur][this.largeur];
+        anthills = new ArrayList<>();
+        foods = new ArrayList<>();
+        initializeGrid(nbFood,1);
     }
 
-    private void emptyFullMap(){
-        for (int i = 0; i<this.hauteur; i++){
-            for (int j = 0; j<this.largeur; j++){
-                map[i][j] = null;
+    public Map(Cell[][] grid){
+        this.grid = grid;
+    }
+
+    public Map(int largeur, int hauteur, String mapTxt){
+        this(largeur,hauteur);
+        grid = new Cell[this.hauteur][this.largeur];
+        int nbChar = 0;
+        anthills = new ArrayList<>();
+        foods = new ArrayList<>();
+        for(int i=0;i<mapTxt.length();i++){
+            char c = mapTxt.charAt(i);
+            if(c != ' ' && c != '\n'){
+                int posLargeur = nbChar%largeur;
+                int posHauteur = (int) nbChar/largeur;
+                nbChar++;
+                if(c == 'A'){
+                    Anthill a = new Anthill(posLargeur,posHauteur);
+                    grid[posHauteur][posLargeur] = a;
+                    anthills.add(a);
+                }
+                else if(c == 'F'){
+                    Food f = new Food(posLargeur,posHauteur);
+                    grid[posHauteur][posLargeur] = f;
+                    foods.add(f);
+                }
+                else{
+                    grid[posHauteur][posLargeur] = new Cell(posLargeur,posHauteur);
+                }
             }
         }
     }
 
-    private void initializeMap(int nbFood, int nbAnthill){
-        int xAleat = 0;
-        int yAleat = 0;
+    private void initializeGrid(int nbFood, int nbAnthill){
+        int xRand = 0;
+        int yRand = 0;
         for(int food=0;food<nbFood;food++){
             do{
-                xAleat = (int) Math.floor(Math.random()*this.largeur);
-                yAleat = (int) Math.floor(Math.random()*this.hauteur);
+                xRand = (int) Math.floor(Math.random()*this.largeur);
+                yRand = (int) Math.floor(Math.random()*this.hauteur);
             }
-            while(map[yAleat][xAleat] != null);
-            map[yAleat][xAleat] = new Food();
+            while(grid[yRand][xRand] != null);
+            Food f = new Food(xRand,yRand);
+            foods.add(f);
+            grid[yRand][xRand] = f;
         }
         for(int anthill=0;anthill<nbAnthill;anthill++){
             do{
-                xAleat = (int) Math.floor(Math.random()*this.largeur);
-                yAleat = (int) Math.floor(Math.random()*this.hauteur);
+                xRand = (int) Math.floor(Math.random()*this.largeur);
+                yRand = (int) Math.floor(Math.random()*this.hauteur);
             }
-            while(map[yAleat][xAleat] != null);
-            hanthillX = xAleat;
-            hanthillY = yAleat;
-            map[yAleat][xAleat] = new Anthill();
+            while(grid[yRand][xRand] != null);
+            Anthill a = new Anthill(xRand,yRand);
+            anthills.add(a);
+            grid[yRand][xRand] = a;
         }
     }
 
     public void displayMap(){
         for (int i = 0; i<this.hauteur; i++){
             for (int j = 0; j<this.largeur; j++){
-                if(map[i][j] instanceof Anthill)
-                    System.out.print(1);
-                else if(map[i][j] instanceof Food)
-                    System.out.print(2);
-                else if(map[i][j] instanceof Ant)
-                    System.out.print(3);
+                if(grid[i][j] instanceof Anthill)
+                    System.out.print('A');
+                else if(grid[i][j] instanceof Food)
+                    System.out.print('F');
                 else
-                    System.out.print(0);
+                    System.out.print('#');
                 System.out.print(" ");
             }
             System.out.println();
         }
     }
 
-    public void placeObject(int largeur, int hauteur, Object o){
-        map[hauteur][largeur] = o;
+    public void placeObject(int largeur, int hauteur, Cell o){
+        grid[hauteur][largeur] = o;
     }
 
-    public void takeFood(int largeur, int hauteur){
-        map[largeur][hauteur] = 0;
-    }
+    public Cell[][] getGrid(){ return grid; }
 
     public int getLargeur() { return largeur; }
 
     public int getHauteur() { return hauteur; }
 
-    public int getHanthillX() { return hanthillX; }
+    public ArrayList<Food> getFoods(){ return foods; }
 
-    public int getHanthillY() { return hanthillY; }
+    public ArrayList<Anthill> getAnthills(){ return anthills; }
+
+    public void setAnthills(ArrayList<Anthill> anthills){ this.anthills = anthills; }
 }

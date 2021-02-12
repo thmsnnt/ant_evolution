@@ -1,5 +1,6 @@
 package util_tree;
 
+import javax.sound.midi.Soundbank;
 import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -121,7 +122,7 @@ public class DecisionTree implements Serializable, Cloneable {
     // Fonction interne permettant de récupérer le texte présent dans les fichiers de Noeuds (Conditions et Actions)
     private List<String> getLines(String fileName) throws IOException { // Réutilisation de getLignes, présent dans la classe Case, faut-il le généraliser dans un classe mère ?
         List<String> lignes = new ArrayList<>();
-        fileName = System.getProperty("user.dir") + "\\Module_Projet_Java\\" + fileName;
+        fileName = System.getProperty("user.dir") + "\\" + fileName;
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line;
         while ((line = reader.readLine()) != null) {
@@ -138,7 +139,7 @@ public class DecisionTree implements Serializable, Cloneable {
 
     private void displayTreePrivate(int hauteur, String espace) {
         System.out.println(espace + hauteur + "." + value.getText() + "(" + id + ")");
-        if (value.getClass().getName().equals("util_fourmi.Condition")) {
+        if (value instanceof util_tree.Condition) {
             treeLeft.displayTreePrivate(hauteur + 1, espace += "  ");
             treeRight.displayTreePrivate(hauteur + 1, espace);
         }
@@ -199,7 +200,7 @@ public class DecisionTree implements Serializable, Cloneable {
     }
 
     private void numberingNodePrivate() {
-        if (value.getClass().getName().equals("util_fourmi.Condition")) {
+        if (value instanceof util_tree.Condition) {
             id = nbTempNode;
             nbTempNode++;
             treeLeft.numberingNodePrivate();
@@ -214,7 +215,7 @@ public class DecisionTree implements Serializable, Cloneable {
     }
 
     private void numberingLeavePrivate() {
-        if (value.getClass().getName().equals("util_fourmi.Condition")) {
+        if (value instanceof util_tree.Condition) {
             treeLeft.numberingLeavePrivate();
             treeRight.numberingLeavePrivate();
         } else {
@@ -232,6 +233,8 @@ public class DecisionTree implements Serializable, Cloneable {
             //System.out.println("N° du noeud à modifier : " + aleatCond);
             replaceConditionPrivate(randCond);
         }
+        System.out.println();
+        this.displayTree();
         simplifyTree();
         numberingNode();
         numberingLeave();
@@ -248,7 +251,7 @@ public class DecisionTree implements Serializable, Cloneable {
             }
             value = allConditions[newNuCond];
         } else {
-            if (value.getClass().getName().equals("util_fourmi.Condition")) {
+            if (value instanceof util_tree.Condition) {
                 treeLeft.replaceConditionPrivate(randCond);
                 treeRight.replaceConditionPrivate(randCond);
             }
@@ -256,10 +259,12 @@ public class DecisionTree implements Serializable, Cloneable {
     }
 
     // Fonction permettant de remplacer une action par une autre afin de muter
-    public void remplacerAction() throws IOException {
+    public void replaceAction() throws IOException {
         int nbAct = nbActions();
         int aleatAct = (int) (Math.random() * nbAct) + 101; // A modifier ensuite selon nos choix de numérotation
         interneRemplacerAction(aleatAct);
+        System.out.println();
+        this.displayTree();
         simplifyTree();
         numberingNode();
         numberingLeave();
@@ -275,7 +280,7 @@ public class DecisionTree implements Serializable, Cloneable {
             }
             value = allActions[newNuAct];
         } else {
-            if (value.getClass().getName().equals("util_fourmi.Condition")) {
+            if (value instanceof util_tree.Condition) {
                 treeLeft.interneRemplacerAction(randAct);
                 treeRight.interneRemplacerAction(randAct);
             }
@@ -300,7 +305,7 @@ public class DecisionTree implements Serializable, Cloneable {
             treeLeft = treeRight;
             treeRight = temp;
         } else {
-            if (value.getClass().getName().equals("util_fourmi.Condition")) {
+            if (value instanceof util_tree.Condition) {
                 treeLeft.exchangeChildsPrivate(randCond);
                 treeRight.exchangeChildsPrivate(randCond);
             }
@@ -327,7 +332,7 @@ public class DecisionTree implements Serializable, Cloneable {
         if (prog2.getId() == randCond2) {
             replaceChildPrivate(randCond1, randCond2, prog2);
         } else {
-            if (prog2.getNoeud().getClass().getName().equals("util_fourmi.Condition")) {
+            if (prog2.getNoeud() instanceof util_tree.Condition) {
                 selectNodeToInsert(randCond1, randCond2, prog2.getTreeLeft());
                 selectNodeToInsert(randCond1, randCond2, prog2.getTreeRight());
             }
@@ -340,7 +345,7 @@ public class DecisionTree implements Serializable, Cloneable {
             treeLeft = prog2.getTreeLeft();
             treeRight = prog2.getTreeRight();
         } else {
-            if (value.getClass().getName().equals("util_fourmi.Condition")) {
+            if (value instanceof util_tree.Condition) {
                 treeLeft.replaceChildPrivate(randCond1, randCond2, prog2);
                 treeRight.replaceChildPrivate(randCond1, randCond2, prog2);
             }
@@ -368,7 +373,7 @@ public class DecisionTree implements Serializable, Cloneable {
 
     // Fonction qui retourne le nombre de conditions présentes dans l'arbre
     public int nbConditions() {
-        if (value.getClass().getName().equals("util_fourmi.Condition"))
+        if (value instanceof util_tree.Condition)
             return 1 + treeLeft.nbConditions() + treeRight.nbConditions();
         else
             return 0;
@@ -381,7 +386,7 @@ public class DecisionTree implements Serializable, Cloneable {
 
     // Fonction qui retourne le nombre de noeuds (Actions + Conditions) présents dans l'arbre
     public int nbNodeTotal() {
-        if (value.getClass().getName().equals("util_fourmi.Condition")) {
+        if (value instanceof util_tree.Condition) {
             return 1 + treeLeft.nbNodeTotal() + treeRight.nbNodeTotal();
         } else {
             return 1;
@@ -389,7 +394,7 @@ public class DecisionTree implements Serializable, Cloneable {
     }
 
     private Node[] getCondTab() throws IOException {
-        String nomFichierConditions = "Noeuds\\Conditions.txt";
+        String nomFichierConditions = "Nodes\\Conditions.txt";
 
         // On récupère les conditions puis on les met dans une liste
         List<String> listConditions = getLines(nomFichierConditions);
@@ -405,7 +410,7 @@ public class DecisionTree implements Serializable, Cloneable {
     }
 
     private Node[] getActTab() throws IOException {
-        String nomFichierActions = "Noeuds\\Actions.txt";
+        String nomFichierActions = "Nodes\\Actions.txt";
 
         // On récupère les actions puis on les met dans une liste
         List<String> listActions = getLines(nomFichierActions);
@@ -428,7 +433,7 @@ public class DecisionTree implements Serializable, Cloneable {
     private String toStringPrivate(int hauteur, String espace) {
         String S = "";
         S += espace + hauteur + "." + value.getText() + "\n";
-        if (value.getClass().getName().equals("util_fourmi.Condition")) {
+        if (value instanceof util_tree.Condition) {
             S += treeLeft.toStringPrivate(hauteur + 1, espace += "  ");
             S += treeRight.toStringPrivate(hauteur + 1, espace);
         }
