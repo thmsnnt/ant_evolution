@@ -1,11 +1,6 @@
-package util_tree;
+package util_ant;
 
-import javax.sound.midi.Soundbank;
-import javax.swing.*;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 
 
@@ -139,13 +134,11 @@ public class DecisionTree implements Serializable, Cloneable {
 
     private void displayTreePrivate(int hauteur, String espace) {
         System.out.println(espace + hauteur + "." + value.getText() + "(" + id + ")");
-        if (value instanceof util_tree.Condition) {
+        if (value instanceof util_ant.Condition) {
             treeLeft.displayTreePrivate(hauteur + 1, espace += "  ");
             treeRight.displayTreePrivate(hauteur + 1, espace);
         }
     }
-
-
 
     public void simplifyTree() {
         //On simplifie les deux côtés de l'arbre de départ
@@ -200,7 +193,7 @@ public class DecisionTree implements Serializable, Cloneable {
     }
 
     private void numberingNodePrivate() {
-        if (value instanceof util_tree.Condition) {
+        if (value instanceof util_ant.Condition) {
             id = nbTempNode;
             nbTempNode++;
             treeLeft.numberingNodePrivate();
@@ -215,7 +208,7 @@ public class DecisionTree implements Serializable, Cloneable {
     }
 
     private void numberingLeavePrivate() {
-        if (value instanceof util_tree.Condition) {
+        if (value instanceof util_ant.Condition) {
             treeLeft.numberingLeavePrivate();
             treeRight.numberingLeavePrivate();
         } else {
@@ -233,8 +226,7 @@ public class DecisionTree implements Serializable, Cloneable {
             //System.out.println("N° du noeud à modifier : " + aleatCond);
             replaceConditionPrivate(randCond);
         }
-        System.out.println();
-        this.displayTree();
+        simplifyTree();
         simplifyTree();
         numberingNode();
         numberingLeave();
@@ -251,7 +243,7 @@ public class DecisionTree implements Serializable, Cloneable {
             }
             value = allConditions[newNuCond];
         } else {
-            if (value instanceof util_tree.Condition) {
+            if (value instanceof util_ant.Condition) {
                 treeLeft.replaceConditionPrivate(randCond);
                 treeRight.replaceConditionPrivate(randCond);
             }
@@ -263,8 +255,7 @@ public class DecisionTree implements Serializable, Cloneable {
         int nbAct = nbActions();
         int aleatAct = (int) (Math.random() * nbAct) + 101; // A modifier ensuite selon nos choix de numérotation
         interneRemplacerAction(aleatAct);
-        System.out.println();
-        this.displayTree();
+        simplifyTree();
         simplifyTree();
         numberingNode();
         numberingLeave();
@@ -280,7 +271,7 @@ public class DecisionTree implements Serializable, Cloneable {
             }
             value = allActions[newNuAct];
         } else {
-            if (value instanceof util_tree.Condition) {
+            if (value instanceof util_ant.Condition) {
                 treeLeft.interneRemplacerAction(randAct);
                 treeRight.interneRemplacerAction(randAct);
             }
@@ -295,6 +286,7 @@ public class DecisionTree implements Serializable, Cloneable {
             exchangeChildsPrivate(randCond);
         }
         simplifyTree();
+        simplifyTree();
         numberingNode();
         numberingLeave();
     }
@@ -305,7 +297,7 @@ public class DecisionTree implements Serializable, Cloneable {
             treeLeft = treeRight;
             treeRight = temp;
         } else {
-            if (value instanceof util_tree.Condition) {
+            if (value instanceof util_ant.Condition) {
                 treeLeft.exchangeChildsPrivate(randCond);
                 treeRight.exchangeChildsPrivate(randCond);
             }
@@ -324,6 +316,7 @@ public class DecisionTree implements Serializable, Cloneable {
             selectNodeToInsert(randCond1, randCond2, tree2);
         }
         simplifyTree();
+        simplifyTree();
         numberingNode();
         numberingLeave();
     }
@@ -332,7 +325,7 @@ public class DecisionTree implements Serializable, Cloneable {
         if (prog2.getId() == randCond2) {
             replaceChildPrivate(randCond1, randCond2, prog2);
         } else {
-            if (prog2.getNoeud() instanceof util_tree.Condition) {
+            if (prog2.getNoeud() instanceof util_ant.Condition) {
                 selectNodeToInsert(randCond1, randCond2, prog2.getTreeLeft());
                 selectNodeToInsert(randCond1, randCond2, prog2.getTreeRight());
             }
@@ -345,7 +338,7 @@ public class DecisionTree implements Serializable, Cloneable {
             treeLeft = prog2.getTreeLeft();
             treeRight = prog2.getTreeRight();
         } else {
-            if (value instanceof util_tree.Condition) {
+            if (value instanceof util_ant.Condition) {
                 treeLeft.replaceChildPrivate(randCond1, randCond2, prog2);
                 treeRight.replaceChildPrivate(randCond1, randCond2, prog2);
             }
@@ -373,7 +366,7 @@ public class DecisionTree implements Serializable, Cloneable {
 
     // Fonction qui retourne le nombre de conditions présentes dans l'arbre
     public int nbConditions() {
-        if (value instanceof util_tree.Condition)
+        if (value instanceof util_ant.Condition)
             return 1 + treeLeft.nbConditions() + treeRight.nbConditions();
         else
             return 0;
@@ -386,7 +379,7 @@ public class DecisionTree implements Serializable, Cloneable {
 
     // Fonction qui retourne le nombre de noeuds (Actions + Conditions) présents dans l'arbre
     public int nbNodeTotal() {
-        if (value instanceof util_tree.Condition) {
+        if (value instanceof util_ant.Condition) {
             return 1 + treeLeft.nbNodeTotal() + treeRight.nbNodeTotal();
         } else {
             return 1;
@@ -409,7 +402,7 @@ public class DecisionTree implements Serializable, Cloneable {
         return allConditions;
     }
 
-    private Node[] getActTab() throws IOException {
+    public Node[] getActTab() throws IOException {
         String nomFichierActions = "Nodes\\Actions.txt";
 
         // On récupère les actions puis on les met dans une liste
@@ -425,6 +418,24 @@ public class DecisionTree implements Serializable, Cloneable {
         return allActions;
     }
 
+    public String save(String fileName) throws IOException {
+        return savePrivate(fileName, 0);
+    }
+
+    private String savePrivate(String fileName, int hauteur){
+        String S = "";
+        S += hauteur + "." + value.getText() + "\n";
+        if (value instanceof util_ant.Condition) {
+            S += treeLeft.savePrivate(fileName,hauteur + 1);
+            S += treeRight.savePrivate(fileName,hauteur + 1);
+        }
+        return S;
+    }
+
+    public DecisionTree load(String fileName) throws IOException, ClassNotFoundException {
+        return new DecisionTree();
+    }
+
     // Fonction toString du programme génétique
     public String toString() {
         return toStringPrivate(0, "");
@@ -433,7 +444,7 @@ public class DecisionTree implements Serializable, Cloneable {
     private String toStringPrivate(int hauteur, String espace) {
         String S = "";
         S += espace + hauteur + "." + value.getText() + "\n";
-        if (value instanceof util_tree.Condition) {
+        if (value instanceof util_ant.Condition) {
             S += treeLeft.toStringPrivate(hauteur + 1, espace += "  ");
             S += treeRight.toStringPrivate(hauteur + 1, espace);
         }

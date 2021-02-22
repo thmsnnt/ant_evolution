@@ -1,4 +1,6 @@
-public class Cell {
+package util_world;
+
+public class Cell implements Cloneable {
     private int positionLargeur;
     private int positionHauteur;
 
@@ -13,5 +15,9 @@ public class Cell {
 
     public int getPositionHauteur() {
         return positionHauteur;
+    }
+
+    public String toString(){
+        return "#";
     }
 }
